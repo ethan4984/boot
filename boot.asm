@@ -22,7 +22,7 @@ initCS:
 in al, 0x92
 or al, 2
 out 0x92, al ; enables a20 line
-    
+
 lgdt[GDT]
 
 mov ah, 0x42 ; extended sector read from disk
@@ -39,40 +39,40 @@ mov edi, 0x6000
 
 e820:
     mov eax, 0xe820
-    mov ecx, 24
-    mov edx, 0x534d4150
+    mov ecx, 24 ; size of struct 
+    mov edx, 0x534d4150 ; 'SMAP'
     int 0x15
     
     add edi, 24
 
-    jc .exit
+    jc .exit ; error on carry
   
-    test ebx, ebx 
+    test ebx, ebx ; when is zero we are done
     jnz e820
 
 .exit:
 
 cli
 
-mov word [pml4 + 256 * 8], pml3 | 0x3 
+mov word [pml4 + 256 * 8], pml3 | 0x3 ; offset for 0xffff8... is 256 * 8
 mov word [pml4], pml3 | 0x3
 mov word [pml3], pml2 | 0x3
 
-mov word [pml4 + 511 * 8], hh_pml3 | 0x3 
+mov word [pml4 + 511 * 8], hh_pml3 | 0x3 ; offset for 0xfffffffff8... is 511 * 510 on pml4 and on pml3 its 510 * 8
 mov word [hh_pml3 + 510 * 8], hh_pml2 | 0x3
 
 xor eax, eax
 xor edi, edi
 
 buildPageTables:
-    or eax, (1 << 7) | 0x3
-    mov dword [pml2 + edi], eax 
+    or eax, (1 << 7) | 0x3 ; set them as present and writable and also set the size bit making us use 2mb pages
+    mov dword [pml2 + edi], eax  
     mov dword [hh_pml2 + edi], eax
 
     add eax, 0x200000
     add edi, 8
 
-    cmp eax, 0x40000000
+    cmp eax, 0x40000000 ; map first gb
     jb buildPageTables
 
 mov eax, pml4
@@ -121,47 +121,47 @@ GDT:
 .NULL:
     dq 0
 .CODE16:
-    dw 0xffff
-    dw 0
-    db 0
-    db 0b10011010
-    db 0
-    db 0
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10011010 ; access
+    db 0 ; granularity
+    db 0 ; base high
 .DATA16:
-    dw 0xffff
-    dw 0
-    db 0
-    db 0b10011010
-    db 0
-    db 0
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10011010 ; access
+    db 0 ; granularity
+    db 0 ; base high
 .CODE32:
-    dw 0xffff
-    dw 0
-    db 0
-    db 0b10011010
-    db 0b11001111
-    db 0
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10011010 ; access
+    db 0b11001111 ; granularity
+    db 0 ; base high
 .DATA32:
-    dw 0xffff
-    dw 0
-    db 0
-    db 0b10010010
-    db 0b11001111
-    db 0
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10010010 ; access
+    db 0b11001111 ; granularity
+    db 0 ; base high
 .CODE64:
-    dw 0
-    dw 0
-    db 0
-    db 0b10011010
-    db 0b00100000
-    db 0
+    dw 0 ; limit
+    dw 0 ; base low
+    db 0 ; base mid 
+    db 0b10011010 ; access
+    db 0b00100000 ; granularity
+    db 0 ; base high
 .DATA64:
-    dw 0
-    dw 0
-    db 0
-    db 0b10010010
-    db 0
-    db 0
+    dw 0 ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10010010 ; access
+    db 0 ; granularity
+    db 0 ; base high
 
 .end:
 
@@ -169,3 +169,5 @@ times 510-($-$$) db 0
 dw 0xaa55 ; boot signature
 
 incbin 'kernel.bin'
+
+times 32768-($-$$) db 0
