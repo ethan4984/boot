@@ -127,6 +127,22 @@ times 0x1b8-($-$$) db 0 ; partition entry structures (left blanck dont touch)
 times 510-($-$$) db 0
 dw 0xaa55 ; boot signature
 
+mov eax, 0x4f02
+mov ebx, 280
+int 0x10
+
+mov eax, 0x4f01
+mov ecx, 280
+mov edi, VBEINFO 
+int 0x10
+
+mov word [bootheader.e820address], 0x6000
+mov word [bootheader.pitch], VBEINFO.pitch
+mov word [bootheader.x], VBEINFO.x
+mov word [bootheader.y], VBEINFO.y
+mov byte [bootheader.bpp], VBEINFO.bpp
+mov dword [bootheader.framebuffer], VBEINFO.framebuffer
+
 cli
 
 mov word [pml4 + 256 * 8], pml3 | 0x3 ; offset for 0xffff8... is 256 * 8
@@ -179,5 +195,29 @@ longModeCode:
     mov ss, ax
 
     jmp $
+
+VBEINFO:
+    dq 0
+    dq 0
+    .pitch: dw 0
+    .x: dw 0
+    .y: dw 0
+    db 0
+    db 0
+    db 0
+    .bpp: db 0
+    dq 0
+    dw 0
+    db 0
+    .framebuffer: dd 0 
+    times 212 db 0
+
+bootheader:
+    .e820address: dw 0
+    .pitch: dw 0
+    .x: dw 0
+    .y: dw 0
+    .bpp: db 0
+    .framebuffer: dd 0
 
 times 32768-($-$$) db 0
