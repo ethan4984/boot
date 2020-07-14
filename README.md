@@ -1,5 +1,5 @@
 # boot
-This is a simple bootloader designed for easy implementation into hobbyist operating systems and for learning purposes. 
+This is a simple bootloader designed for easy integration into hobbyist operating systems and for learning purposes. 
 To avoid the annoyance of entering higherhalf 64 bit long mode, this does it for you :)
 
 We map the first gigabyte of memory with these following mappings
