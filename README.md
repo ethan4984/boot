@@ -26,7 +26,7 @@ void kernelMain() {
   E820Entry_t *E820Entries = (E820Entry_t*)0x6000;
 }
 ```
-to load your kernel, at the end of boot.asm, just this line too 
+to load your kernel, at the end of boot.asm, just edit this line too 
 ```asm
 incbin '<insert path to kernel binary>'
 ```
