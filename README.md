@@ -26,24 +26,3 @@ void kernelMain() {
   E820Entry_t *E820Entries = (E820Entry_t*)0x6000;
 }
 ```
-to load your kernel, at the end of boot.asm, just edit this line too 
-```asm
-incbin '<insert path to kernel binary>'
-```
-Keep in mind, one of the limitations of this bootloader, is that it cant read from elf binarys, only flat binarys.
-So in your linker, just change the output format.
-
-Also since we are linking flat, to insure that kernelMain is actually at 0x7e00, just put kernelMain in section .init and put
-it at the very beginning of your linker script; like this 
-```ld
-OUTPUT_FORMAT(binary)
-entry(kernelMain)
-
-SECTIONS {
-  . 0x7e00;
-  .init : { 
-    *(.init*)
-  } 
-  ...
-}
-```
