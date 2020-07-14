@@ -58,7 +58,7 @@ mov word [pml4 + 256 * 8], pml3 | 0x3 ; offset for 0xffff8... is 256 * 8
 mov word [pml4], pml3 | 0x3
 mov word [pml3], pml2 | 0x3
 
-mov word [pml4 + 511 * 8], hh_pml3 | 0x3 ; offset for 0xfffffffff8... is 511 * 510 on pml4 and on pml3 its 510 * 8
+mov word [pml4 + 511 * 8], hh_pml3 | 0x3 ; offset for 0xfffffffff8... is 511 * 8 on pml4 and on pml3 its 510 * 8
 mov word [hh_pml3 + 510 * 8], hh_pml2 | 0x3
 
 xor eax, eax
