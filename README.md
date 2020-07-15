@@ -11,7 +11,11 @@ ffff800000000000-ffff800040000000 0000000040000000 -rw
 ffffffff80000000-ffffffffc0000000 0000000040000000 -rw
 ```
 This bootloader also gets a lot of very useful information, including the rsdp, the e820 mmap, and more
-The boot header looks like this
+
+# bproto
+
+The bruh protocall looks like this
+
 ```c
 typedef struct {
     uint16_t mmapAddress;
@@ -22,6 +26,8 @@ typedef struct {
     uint16_t height;
     uint8_t bpp;
     uint32_t framebuffer;
-} __attribute__((packed)) boothdr;
+} __attribute__((packed)) bproto;
 ```
 A pointer to this structure is passed through rdi, directly to your kernels main function
+
+To choose what vesa mode you want, just edit the videomode macro at the top of boot.asm
