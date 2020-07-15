@@ -1,3 +1,5 @@
+videomode equ 280
+
 pml4 equ 0x1000
 pml3 equ 0x2000
 pml2 equ 0x3000
@@ -134,12 +136,12 @@ times 510-($-$$) db 0
 dw 0xaa55 ; boot signature
 
 mov eax, 0x4f01
-mov ecx, 280
+mov ecx, videomode
 mov edi, VBEINFO 
 int 0x10
 
 mov eax, 0x4f02
-mov ebx, 280
+mov ebx, videomode
 int 0x10
 
 mov word [bootheader.mmapaddress], 0x6000
