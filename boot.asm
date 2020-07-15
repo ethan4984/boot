@@ -49,6 +49,10 @@ e820:
     add edi, 24
 
     jc .exit ; error on carry
+
+    mov al, byte [e820EntryNumber]
+    inc al
+    mov byte [e820EntryNumber], al
   
     test ebx, ebx ; when is zero we are done
     jnz e820
@@ -122,26 +126,41 @@ GDT:
 
 .end:
 
+e820EntryNumber: db 0
+
 times 0x1b8-($-$$) db 0 ; partition entry structures (left blanck dont touch)
 
 times 510-($-$$) db 0
 dw 0xaa55 ; boot signature
-
-mov eax, 0x4f02
-mov ebx, 280
-int 0x10
 
 mov eax, 0x4f01
 mov ecx, 280
 mov edi, VBEINFO 
 int 0x10
 
-mov word [bootheader.e820address], 0x6000
-mov word [bootheader.pitch], VBEINFO.pitch
-mov word [bootheader.x], VBEINFO.x
-mov word [bootheader.y], VBEINFO.y
-mov byte [bootheader.bpp], VBEINFO.bpp
-mov dword [bootheader.framebuffer], VBEINFO.framebuffer
+mov eax, 0x4f02
+mov ebx, 280
+int 0x10
+
+mov word [bootheader.mmapaddress], 0x6000
+
+mov al, byte [e820EntryNumber]
+mov byte [bootheader.mmapentries], al
+
+mov ax, word [VBEINFO.pitch]
+mov word [bootheader.pitch], ax
+
+mov ax, word [VBEINFO.width]
+mov word [bootheader.width], ax
+
+mov ax, word [VBEINFO.height]
+mov word [bootheader.height], ax
+
+mov al, byte [VBEINFO.bpp]
+mov byte [bootheader.bpp], al
+
+mov eax, dword [VBEINFO.framebuffer]
+mov dword [bootheader.framebuffer], eax
 
 cli
 
@@ -194,30 +213,87 @@ longModeCode:
     mov gs, ax
     mov ss, ax
 
-    jmp $
+    call findRSDP
 
-VBEINFO:
-    dq 0
-    dq 0
-    .pitch: dw 0
-    .x: dw 0
-    .y: dw 0
-    db 0
-    db 0
-    db 0
-    .bpp: db 0
-    dq 0
-    dw 0
-    db 0
-    .framebuffer: dd 0 
-    times 212 db 0
+    mov rdi, bootheader
+    jmp 0x8200
+
+findRSDP:
+    mov eax, 0x80000
+
+.l1:
+    cmp eax, 0xa0000 ; skip over video memory
+    jne .continue
+    mov eax, 0xe0000
+    jmp .l1
+
+.continue:
+    xor ecx, ecx
+
+.l2:
+    mov dl, byte [rsdpSignature + ecx]
+    cmp byte [eax + ecx], dl
+    jne .signaturefail
+
+    cmp ecx, 7
+    je .signaturesuccess
+    inc ecx
+
+    jmp .l2
+
+; r8 = 1 for equal
+; r8 = 0 for not equal
+
+.signaturesuccess:
+    mov r8, 1
+    jmp .endl2
+
+.signaturefail:
+    xor r8, r8
+    jmp .endl2
+
+.endl2:
+    test r8, r8 
+    jz .fail
+
+    mov dword [bootheader.rsdp], eax
+    ret
+
+.fail:
+    cmp eax, 0x100000
+    je .end
+
+    add eax, 16
+    jmp .l1
+
+.end:
+    ret
+    
+rsdpSignature: db 'RSD PTR ',  0
 
 bootheader:
-    .e820address: dw 0
+    .mmapaddress: dw 0
+    .mmapentries: db 0
+    .rsdp: dd 0
     .pitch: dw 0
-    .x: dw 0
-    .y: dw 0
+    .width: dw 0
+    .height: dw 0
     .bpp: db 0
     .framebuffer: dd 0
+
+VBEINFO:
+    times 16 db 0
+    .pitch: dw 0
+    .width: dw 0
+    .height: dw 0
+    times 3 db 0
+    .bpp: db 0
+    times 14 db 0
+    .framebuffer: dd 0
+    times 212 db 0
+
+times 1536-($-$$) db 0
+
+incbin 'kernel.bin'
 
 times 32768-($-$$) db 0
