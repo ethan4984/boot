@@ -1,5 +1,5 @@
 # boot
-This is a simple bootloader designed for easy integration into hobbyist operating systems and for learning purposes. 
+This is a simple bios bootloader made fun and for learning. 
 To avoid the annoyance of entering higherhalf 64 bit long mode, this does it for you :)
 
 # features
