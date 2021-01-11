@@ -16,7 +16,7 @@ init_cs:
     mov byte [boot_drive], dl
     mov ah, 0x42
     mov si, DAP
-    int 0x15
+    int 0x13
 
     mov di, E820_MMAP_LOC
     call e820
@@ -65,7 +65,7 @@ pmode_cs_init:
     mov ds, ax
     mov es, ax
 
-    jmp $
+    jmp 0x7e00
 
 times 218-($-$$) db 0
 times 6 db 0
@@ -75,6 +75,20 @@ GDT:
     dd .start
 .start:
     dq 0
+.CODE16:
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10011010 ; access
+    db 0 ; granularity
+    db 0 ; base high
+.DATA16:
+    dw 0xffff ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10010010 ; access
+    db 0 ; granularity
+    db 0 ; base high
 .CODE32:
     dw 0xffff ; limit
     dw 0 ; base low
@@ -95,7 +109,7 @@ DAP:
     db 0x10 ; size of DAP
     db 0 ; unused
     dw 63 ; number of sectors to be read
-    dd 0x7e00 ; load point at
+    dd 0x7e00
     dq 1 ; first sector
 
 boot_drive:
@@ -103,3 +117,17 @@ boot_drive:
 
 times 510-($-$$) db 0
 dw 0xaa55 ; boot signature
+
+print_keys:
+    xor ah, ah
+    push 0x16
+    call real_int
+
+    mov ah, 0xe
+    push 0x10
+    call real_int
+jmp print_keys
+
+%include 'src/real_int.asm'
+
+times 0x8000-($-$$) db 0
