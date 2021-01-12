@@ -1,4 +1,4 @@
-unreal_int:
+unreal_int: ; intended to be called from 16 bit unreal mode
     pushf
     cli
 

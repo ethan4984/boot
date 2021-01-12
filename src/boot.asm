@@ -87,10 +87,6 @@ pmode_cs_init:
     mov byte [unreal_int.int_number], 0x16
     call unreal_int
 
-;    mov ah, 0xe
-;    mov byte [unreal_int.int_number], 0x10
-;    call unreal_int
-
     mov esi, [VBE_MODE_INFO.framebuffer]
     mov dword [esi], 0xfffffff
 
@@ -167,6 +163,10 @@ dw 0xaa55 ; boot signatura
 %include 'src/vesa.asm'
 
 %include 'src/unreal_int.asm'
+
+bits 32
+
+%include 'src/real_int.asm'
 
 times 2048-($-$$) db 0
 
