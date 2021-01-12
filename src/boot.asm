@@ -25,6 +25,8 @@ init_cs:
     or al, 2
     out 0x92, al ; if this does not work then cope
 
+    call find_vesa_mode
+
     lgdt [GDT]
 
     cli
@@ -32,7 +34,7 @@ init_cs:
     or al, 1
     mov cr0, eax
 
-    jmp GDT.CODE32 - GDT.start:pmode_cs_init
+    jmp GDT.CODE16 - GDT.start:pmode_cs_init
 
 e820: ; esi contains the number of entries, es:di entry buffer
     xor esi, esi
@@ -58,14 +60,44 @@ e820: ; esi contains the number of entries, es:di entry buffer
 .exit:
     ret
 
-bits 32
+tm_print: ; ds:si = buffer
+    mov ah, 0xe
+.loop: 
+    lodsb
+    test al, al
+    jz .end
+    int 0x10
+    jmp .loop
+.end:
+    ret
+
 pmode_cs_init:
     mov ax, GDT.DATA32 - GDT.start
     mov ss, ax
     mov ds, ax
     mov es, ax
 
-    jmp 0x7e00
+    mov eax, cr0 
+    and al, 0xfe
+    mov cr0, eax
+
+    jmp 0:.zero_cs
+.zero_cs:
+    xor ah, ah
+    mov byte [unreal_int.int_number], 0x16
+    call unreal_int
+
+;    mov ah, 0xe
+;    mov byte [unreal_int.int_number], 0x10
+;    call unreal_int
+
+    mov esi, [VBE_MODE_INFO.framebuffer]
+    mov dword [esi], 0xfffffff
+
+    jmp $
+
+.save_gdtr:
+    dq 0
 
 times 218-($-$$) db 0
 times 6 db 0
@@ -103,6 +135,20 @@ GDT:
     db 0b10010010 ; access
     db 0b11001111 ; granularity
     db 0 ; base high
+.CODE64:
+    dw 0 ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10011010 ; access
+    db 0b00100000 ; granularity 
+    db 0 ; base high
+.DATA64:
+    dw 0 ; limit
+    dw 0 ; base low
+    db 0 ; base mid
+    db 0b10010110 ; access
+    db 0 ; granularity
+    db 0 ; base high
 .end:
 
 DAP:
@@ -116,18 +162,12 @@ boot_drive:
     db 0
 
 times 510-($-$$) db 0
-dw 0xaa55 ; boot signature
+dw 0xaa55 ; boot signatura
 
-print_keys:
-    xor ah, ah
-    push 0x16
-    call real_int
+%include 'src/vesa.asm'
 
-    mov ah, 0xe
-    push 0x10
-    call real_int
-jmp print_keys
+%include 'src/unreal_int.asm'
 
-%include 'src/real_int.asm'
+times 2048-($-$$) db 0
 
 times 0x8000-($-$$) db 0
