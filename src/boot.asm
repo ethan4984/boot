@@ -3,6 +3,10 @@ bits 16
 
 E820_MMAP_LOC equ 0x1000
 
+LEVEL0_BEGIN equ 0x7c00 + 2048
+LEVEL1_BEGIN equ 0x7c00 + 4096
+LEVEL2_BEGIN equ 0x7c00 + 8192
+
 jmp 0:init_cs
 init_cs:
     xor ax, ax 
@@ -26,7 +30,7 @@ init_cs:
     out 0x92, al ; if this does not work then cope
 
     call find_vesa_mode
-
+    
     lgdt [GDT]
 
     cli
@@ -34,7 +38,7 @@ init_cs:
     or al, 1
     mov cr0, eax
 
-    jmp GDT.CODE16 - GDT.start:pmode_cs_init
+    jmp GDT.CODE32 - GDT.start:pmode_cs_init
 
 e820: ; esi contains the number of entries, es:di entry buffer
     xor esi, esi
@@ -71,25 +75,29 @@ tm_print: ; ds:si = buffer
 .end:
     ret
 
+bits 32
 pmode_cs_init:
     mov ax, GDT.DATA32 - GDT.start
     mov ss, ax
     mov ds, ax
     mov es, ax
-
+    
     mov eax, cr0 
     and al, 0xfe
     mov cr0, eax
 
     jmp 0:.zero_cs
 .zero_cs:
-    xor ah, ah
-    mov byte [unreal_int.int_number], 0x16
-    call unreal_int
+    call LEVEL0_BEGIN
 
-    mov esi, [VBE_MODE_INFO.framebuffer]
-    mov dword [esi], 0xfffffff
+    mov eax, cr0
+    or al, 1
+    mov cr0, eax
 
+    jmp 0x18:.pmode32
+    bits 32
+.pmode32:
+    call LEVEL1_BEGIN
     jmp $
 
 .save_gdtr:
@@ -160,14 +168,26 @@ boot_drive:
 times 510-($-$$) db 0
 dw 0xaa55 ; boot signatura
 
-%include 'src/vesa.asm'
+bits 16
 
-%include 'src/unreal_int.asm'
+%include 'vesa.asm'
 
 bits 32
 
-%include 'src/real_int.asm'
+%include 'unreal_int.asm'
+
+%include 'real_int.asm'
 
 times 2048-($-$$) db 0
+
+incbin 'level0/bin/level0.bin'
+
+times 4096-($-$$) db 0
+
+incbin 'level1/bin/level1.bin'
+
+times 8192-($-$$) db 0
+
+incbin 'level2/bin/level2.bin'
 
 times 0x8000-($-$$) db 0

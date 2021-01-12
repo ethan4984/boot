@@ -7,9 +7,9 @@ find_vesa_mode:
     cmp ax, 0x4f ; check if we support vbe at all
     jne .error
 
-    cmp dword [VBE_INFO.signature], 'VESA' ; check for vbe version 2+
+    cmp dword [VBE_INFO.signature], 'VESA' 
     jne .error
-
+    
     mov ax, word [VBE_INFO.video_mode_seg]
     mov es, ax
     mov di, word [VBE_INFO.video_mode_offset]
@@ -28,6 +28,10 @@ find_vesa_mode:
     pop di
     pop es
 
+    mov ah, 0xe
+    mov al, 'g'
+    int 0x10
+
     cmp word [VBE_MODE_INFO.width], 1024
     jne .back
 
@@ -40,7 +44,7 @@ find_vesa_mode:
     mov ax, 0x4f02
     mov bx, word [es:di]
     int 0x10
-
+    
     ret
 .back:
     add di, 2
@@ -81,6 +85,6 @@ VBE_INFO:
     .project_rev_off: dw 0
     .project_rev_seg: dw 0
     times 222 db 0
-    .oem_data times 526 db 0
+    .oem_data times 256 db 0
 
 vesa_error: db 'Unable to enter a suitable video mode... halting', 0
