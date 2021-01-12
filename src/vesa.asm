@@ -38,7 +38,7 @@ find_vesa_mode:
     jne .back
 
     mov ax, 0x4f02
-    mov bx, 280
+    mov bx, word [es:di]
     int 0x10
 
     ret
