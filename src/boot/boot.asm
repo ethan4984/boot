@@ -3,10 +3,6 @@ bits 16
 
 E820_MMAP_LOC equ 0x1000
 
-LEVEL0_BEGIN equ 0x7c00 + 2048
-LEVEL1_BEGIN equ 0x7c00 + 4096
-LEVEL2_BEGIN equ 0x7c00 + 8192
-
 jmp 0:init_cs
 init_cs:
     xor ax, ax 
@@ -89,17 +85,7 @@ pmode_cs_init:
     jmp 0:.zero_cs
 .zero_cs:
     push VBE_MODE_INFO
-    call LEVEL0_BEGIN
-
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
-
-    jmp 0x18:.pmode32
-    bits 32
-.pmode32:
-    call LEVEL1_BEGIN
-    call LEVEL2_BEGIN
+    call 0x8400
 
 .save_gdtr:
     dq 0
@@ -171,24 +157,16 @@ dw 0xaa55 ; boot signatura
 
 bits 16
 
-%include 'vesa.asm'
+%include 'boot/vesa.asm'
 
 bits 32
 
-%include 'unreal_int.asm'
+%include 'boot/unreal_int.asm'
 
-%include 'real_int.asm'
+%include 'boot/real_int.asm'
 
 times 2048-($-$$) db 0
 
-incbin 'level0/bin/level0.bin'
-
-times 4096-($-$$) db 0
-
-incbin 'level1/bin/level1.bin'
-
-times 8192-($-$$) db 0
-
-incbin 'level2/bin/level2.bin'
+incbin 'bin/game.bin'
 
 times 0x8000-($-$$) db 0

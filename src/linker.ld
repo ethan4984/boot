@@ -3,7 +3,7 @@ ENTRY(main)
 
 SECTIONS
 {
-    . = 0x9000;
+    . = 0x8400;
 
     .init : {
         *(.init)
