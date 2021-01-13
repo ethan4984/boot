@@ -1,5 +1,5 @@
 CC = gcc -m32
-CFLAGS = -ffreestanding -Wall -Wextra -fno-pie
+CFLAGS = -ffreestanding -Wall -Wextra -fno-pie -I.
 CSRC = $(shell find . -type f -name '*.c')
 
 build:

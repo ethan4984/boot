@@ -4,7 +4,7 @@ find_vesa_mode:
     int 0x10
     jc .error
 
-    cmp ax, 0x4f ; check if we support vbe at all
+    cmp ax, 0x4f 
     jne .error
 
     cmp dword [VBE_INFO.signature], 'VESA' 
@@ -14,7 +14,7 @@ find_vesa_mode:
     mov es, ax
     mov di, word [VBE_INFO.video_mode_offset]
 .loop:
-    cmp word [es:di], 0xffff
+    cmp word [es:di], 0xffff ; vidoe modes list is terminated by 0xffff
     je .error
 
     push es ; some bioses destroy es
@@ -22,15 +22,18 @@ find_vesa_mode:
 
     mov ax, 0x4f01
     mov cx, word [es:di]
+
+    push 0
+    pop es ; so VBE_MODE_INFO is in the right place
+
     mov di, VBE_MODE_INFO
     int 0x10
 
     pop di
     pop es
 
-    mov ah, 0xe
-    mov al, 'g'
-    int 0x10
+    cmp byte [VBE_MODE_INFO.bpp], 32
+    jne .back
 
     cmp word [VBE_MODE_INFO.width], 1024
     jne .back
@@ -38,13 +41,10 @@ find_vesa_mode:
     cmp word [VBE_MODE_INFO.height], 768
     jne .back
 
-    cmp byte [VBE_MODE_INFO.bpp], 32
-    jne .back
-
     mov ax, 0x4f02
     mov bx, word [es:di]
     int 0x10
-    
+
     ret
 .back:
     add di, 2

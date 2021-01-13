@@ -88,6 +88,7 @@ pmode_cs_init:
 
     jmp 0:.zero_cs
 .zero_cs:
+    push VBE_MODE_INFO
     call LEVEL0_BEGIN
 
     mov eax, cr0
@@ -98,7 +99,7 @@ pmode_cs_init:
     bits 32
 .pmode32:
     call LEVEL1_BEGIN
-    jmp $
+    call LEVEL2_BEGIN
 
 .save_gdtr:
     dq 0
