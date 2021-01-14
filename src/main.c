@@ -1,43 +1,60 @@
 #include <output.h>
+#include <keyboard.h>
 #include <unreal_int.h>
 #include <vesa.h>
 
+#define PINK 0xFF69B4
+
 __attribute__((section(".init")))
-void main(vbe_mode_info_t *vbe_mode_info) {
+void main(int boot_drive, vbe_mode_info_t *vbe_mode_info) {
     vesa_init(vbe_mode_info);
 
-    uint32_t colour_buffer[] = { 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                                 0xff, 0, 0xff, 0xff, 0, 0xff,
-                               };
+    static uint32_t colour_buffer[] = {
+                                        0, 0, 0, PINK, PINK, PINK, PINK, 0, 0, 0,
+                                        0, 0, 0, PINK, PINK, PINK, PINK, 0, 0, 0,
+                                        0, 0, 0, PINK, PINK, PINK, PINK, 0, 0, 0,
+                                        0, 0, 0, PINK, PINK, PINK, PINK, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, 0, 0, PINK, PINK, 0, 0, 0, 0,
+                                        0, 0, PINK, PINK, 0, 0, PINK, PINK, 0, 0,
+                                        0, 0, PINK, PINK, 0, 0, PINK, PINK, 0, 0,
+                                        0, 0, PINK, PINK, 0, 0, PINK, PINK, 0, 0,
+                                        0, 0, PINK, PINK, 0, 0, PINK, PINK, 0, 0,
+                                      };
 
-    uint32_t back_buffer[sizeof(colour_buffer)];
+    static uint32_t back_buffer[sizeof(colour_buffer)];
 
-    shape_t shape = { .colour_buffer = colour_buffer, .backbuffer = back_buffer, .x = 50, .y = 50, .height = 12, .width = 6 };
+    shape_t shape = { .colour_buffer = colour_buffer, .backbuffer = back_buffer, .x = 50, .y = 50, .height = 20, .width = 10 };
 
     draw_shape(&shape);
 
     redraw_shape(&shape, 100, 100);
 
-    set_pixel(50, 50, 0xffffffff);
-
-    kprintf("[KDEBUG]", "Welcome");
-
-    regs_t input = { .eax = 0 };
-    regs_t output;
-
     for(;;) {
-        unreal_int(0x16, &input, &output);
-        kprintf("[KDEBUG]", "%c", (uint8_t)output.eax);
+        int c = read_char();
+        switch(c) {
+            case CURSOR_RIGHT:
+                redraw_shape(&shape, shape.x + 2, shape.y);
+                break;
+            case CURSOR_LEFT:
+                redraw_shape(&shape, shape.x - 2, shape.y);
+                break;
+            case CURSOR_UP:
+                redraw_shape(&shape, shape.x, shape.y - 2);
+                break;
+            case CURSOR_DOWN:
+                redraw_shape(&shape, shape.x, shape.y + 2);
+        }
     }
 
     redraw_shape(&shape, 500, 500);

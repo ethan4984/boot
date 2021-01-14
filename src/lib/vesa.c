@@ -20,8 +20,8 @@ inline uint32_t get_pixel(uint32_t x, uint32_t y) {
 }
 
 void draw_shape(shape_t *shape) {
-    for(uint16_t x = 0; x < shape->width; x++) { 
-        for(uint16_t y = 0; y < shape->height; y++) {
+    for(uint16_t y = 0; y < shape->height; y++) { 
+        for(uint16_t x = 0; x < shape->width; x++) {
             if(shape->colour_buffer[y * shape->width + x] == UNUSED_PIXEL)
                 continue;
             shape->backbuffer[y * shape->width + x] = get_pixel(shape->x + x, shape->y + y);

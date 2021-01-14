@@ -85,6 +85,7 @@ pmode_cs_init:
     jmp 0:.zero_cs
 .zero_cs:
     push VBE_MODE_INFO
+    push dword [boot_drive]
     call 0x8400
 
 .save_gdtr:
@@ -150,7 +151,7 @@ DAP:
     dq 1 ; first sector
 
 boot_drive:
-    db 0
+    dd 0
 
 times 510-($-$$) db 0
 dw 0xaa55 ; boot signatura
@@ -158,12 +159,6 @@ dw 0xaa55 ; boot signatura
 bits 16
 
 %include 'boot/vesa.asm'
-
-bits 32
-
-%include 'boot/unreal_int.asm'
-
-%include 'boot/real_int.asm'
 
 times 2048-($-$$) db 0
 
