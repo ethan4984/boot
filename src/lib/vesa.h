@@ -28,7 +28,7 @@ typedef struct {
 void vesa_init(vbe_mode_info_t *vbe_mode_info);
 void set_pixel(uint32_t x, uint32_t y, uint32_t colour);
 uint32_t get_pixel(uint32_t x, uint32_t y);
-void draw_shape(shape_t *shape);
-void redraw_shape(shape_t *shape, uint16_t new_x, uint16_t new_y);
+int draw_shape(shape_t *shape);
+int redraw_shape(shape_t *shape, uint16_t new_x, uint16_t new_y);
 
 #endif

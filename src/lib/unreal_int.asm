@@ -48,12 +48,12 @@ unreal_int:
     pop ebx
     pop eax
     mov esp, dword [ss:.save_esp]
-    
+
     db 0xcd ; opcode for int
 .int_number:
     db 0
 
-    lgdt [.gdtr]
+    lgdt [ss:.gdtr]
 
     mov dword [ss:.save_esp], esp
     mov esp, dword [ss:.output_regs]

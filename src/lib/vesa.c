@@ -19,7 +19,11 @@ inline uint32_t get_pixel(uint32_t x, uint32_t y) {
     return *(volatile uint32_t*)((uint32_t)framebuffer + ((y * fb_pitch) + (x * fb_bpp / 8)));
 }
 
-void draw_shape(shape_t *shape) {
+int draw_shape(shape_t *shape) {
+    if((shape->x > fb_width) || (shape->y > fb_height)) { 
+        return -1;
+    }
+
     for(uint16_t y = 0; y < shape->height; y++) { 
         for(uint16_t x = 0; x < shape->width; x++) {
             if(shape->colour_buffer[y * shape->width + x] == UNUSED_PIXEL)
@@ -28,9 +32,15 @@ void draw_shape(shape_t *shape) {
             set_pixel(shape->x + x, shape->y + y, shape->colour_buffer[y * shape->width + x]);
         }
     }
+    return 0; 
 }
 
-void redraw_shape(shape_t *shape, uint16_t new_x, uint16_t new_y) {
+int redraw_shape(shape_t *shape, uint16_t new_x, uint16_t new_y) {
+    if((shape->x > fb_width) || (shape->y > fb_height))
+        return -1;
+    if((new_x > fb_width) || (new_y > fb_height))
+        return -1;
+
     for(uint16_t x = 0; x < shape->width; x++) { 
         for(uint16_t y = 0; y < shape->height; y++) {
             if(shape->colour_buffer[y * shape->width + x] == UNUSED_PIXEL)
@@ -42,5 +52,5 @@ void redraw_shape(shape_t *shape, uint16_t new_x, uint16_t new_y) {
     shape->x = new_x;
     shape->y = new_y;
 
-    draw_shape(shape);
+    return draw_shape(shape);
 }
